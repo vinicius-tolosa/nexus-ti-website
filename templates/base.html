@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusTI - Soluções em TI e Infraestrutura</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-network-wired"></i> NexusTI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/infraestrutura">Infraestrutura</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/seguranca">Segurança</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/desenvolvimento">Desenvolvimento</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/suporte">Suporte</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/cadastro-cliente">Cadastro</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/admin/login">Admin</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5><i class="fas fa-network-wired"></i> NexusTI</h5>
+                    <p>Soluções completas em TI e infraestrutura tecnológica para sua empresa.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Serviços</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/infraestrutura" class="text-light text-decoration-none">Infraestrutura de Redes</a></li>
+                        <li><a href="/seguranca" class="text-light text-decoration-none">Segurança da Informação</a></li>
+                        <li><a href="/desenvolvimento" class="text-light text-decoration-none">Desenvolvimento de Software</a></li>
+                        <li><a href="/suporte" class="text-light text-decoration-none">Suporte Técnico</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Contato</h5>
+                    <p>
+                        <i class="fas fa-phone"></i> (11) 3000-0000<br>
+                        <i class="fas fa-envelope"></i> contato@nexusit.com.br<br>
+                        <i class="fas fa-map-marker-alt"></i> São Paulo - SP
+                    </p>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="text-center">
+                <p>&copy; 2024 NexusTI. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
