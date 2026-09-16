@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <h1 class="mb-4"><i class="fas fa-code text-success"></i> Desenvolvimento de Software</h1>
+        <p class="lead">Aplicações web e mobile desenvolvidas sob medida para seu negócio.</p>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            {% if projetos %}
+                {% for projeto in projetos %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 project-card shadow-sm">
+                        {% if projeto.imagem %}
+                        <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="card-img-top" alt="{{ projeto.titulo }}">
+                        {% else %}
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-image text-white fa-3x"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ projeto.titulo }}</h5>
+                            <p class="card-text text-muted">{{ projeto.descricao[:100] }}...</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#modal-{{ projeto.id }}">
+                                <i class="fas fa-eye"></i> Visualizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal -->
+                <div class="modal fade" id="modal-{{ projeto.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">{{ projeto.titulo }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                {% if projeto.imagem %}
+                                <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="img-fluid mb-3 w-100" alt="{{ projeto.titulo }}">
+                                {% endif %}
+                                <p><strong>Tipo:</strong> {{ projeto.tipo_projeto }}</p>
+                                <p>{{ projeto.descricao }}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <a href="/cadastro-cliente" class="btn btn-success">
+                                    <i class="fas fa-handshake"></i> Solicitar Serviço Semelhante
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle"></i> Nenhum projeto cadastrado para esta categoria ainda.
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
