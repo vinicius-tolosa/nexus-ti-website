@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section bg-gradient text-light py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Soluções em TI para seu Negócio</h1>
+                <p class="lead mb-4">Infraestrutura, segurança, desenvolvimento e suporte técnico de excelência para empresas de todos os tamanhos.</p>
+                <div class="d-flex gap-3">
+                    <a href="/cadastro-cliente" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus"></i> Solicitar Orçamento
+                    </a>
+                    <a href="#servicos" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-chevron-down"></i> Conhecer Serviços
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="text-center">
+                    <i class="fas fa-server" style="font-size: 200px; opacity: 0.2;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Serviços Destaque -->
+<section id="servicos" class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">Nossos Serviços</h2>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm service-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-network-wired fa-3x text-primary mb-3"></i>
+                        <h5 class="card-title">Infraestrutura de Redes</h5>
+                        <p class="card-text text-muted">Projeto, implantação e manutenção de redes corporativas.</p>
+                        <a href="/infraestrutura" class="btn btn-sm btn-primary">Saiba Mais</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm service-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shield-alt fa-3x text-danger mb-3"></i>
+                        <h5 class="card-title">Segurança da Informação</h5>
+                        <p class="card-text text-muted">Proteção de dados e sistemas contra ameaças.</p>
+                        <a href="/seguranca" class="btn btn-sm btn-danger">Saiba Mais</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm service-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-code fa-3x text-success mb-3"></i>
+                        <h5 class="card-title">Desenvolvimento de Software</h5>
+                        <p class="card-text text-muted">Aplicações web e mobile personalizadas.</p>
+                        <a href="/desenvolvimento" class="btn btn-sm btn-success">Saiba Mais</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 shadow-sm service-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-headset fa-3x text-info mb-3"></i>
+                        <h5 class="card-title">Suporte Técnico Avançado</h5>
+                        <p class="card-text text-muted">Suporte 24/7 para seus sistemas.</p>
+                        <a href="/suporte" class="btn btn-sm btn-info">Saiba Mais</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Projetos em Destaque -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Projetos em Destaque</h2>
+        <div class="row g-4">
+            {% for projeto in projetos %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 project-card shadow-sm">
+                    {% if projeto.imagem %}
+                    <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="card-img-top" alt="{{ projeto.titulo }}">
+                    {% else %}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-image text-white fa-3x"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <span class="badge bg-primary mb-2">{{ projeto.tipo_projeto }}</span>
+                        <h5 class="card-title">{{ projeto.titulo }}</h5>
+                        <p class="card-text text-muted">{{ projeto.descricao[:100] }}...</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modal-{{ projeto.id }}">
+                            <i class="fas fa-eye"></i> Visualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="modal-{{ projeto.id }}" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ projeto.titulo }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            {% if projeto.imagem %}
+                            <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="img-fluid mb-3 w-100" alt="{{ projeto.titulo }}">
+                            {% endif %}
+                            <p><strong>Tipo:</strong> {{ projeto.tipo_projeto }}</p>
+                            <p>{{ projeto.descricao }}</p>
+                        </div>
+                        <div class="modal-footer">
+                            <a href="/cadastro-cliente" class="btn btn-primary">
+                                <i class="fas fa-handshake"></i> Solicitar Serviço Semelhante
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
