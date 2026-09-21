@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - NexusTI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+        @media (max-width: 768px) {
+            .upload-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .upload-slot {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            height: 140px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background-color: #fafafa;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .upload-slot:hover {
+            border-color: #0d6efd;
+            background-color: #f0f4ff;
+        }
+        .upload-slot span.slot-number {
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            font-size: 12px;
+            color: #888;
+            font-weight: bold;
+            z-index: 2;
+        }
+        .upload-slot .add-btn {
+            width: 30px;
+            height: 30px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+        .upload-slot .remove-btn {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 24px;
+            height: 24px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 3;
+            transition: background-color 0.2s;
+        }
+        .upload-slot .remove-btn:hover {
+            background-color: #dc3545;
+        }
+        .upload-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .upload-slot input[type="file"] {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark px-4 mb-4">
+        <span class="navbar-brand">NexusTI - Painel de Controle</span>
+        <div>
+            <ul class="nav nav-pills d-inline-flex me-3">
+                <li class="nav-item">
+                    <a class="nav-link active text-white" id="tab-projetos-btn" href="#" onclick="switchTab('projetos')">Projetos</a>
+                </li>
+                <li class="nav-item ms-2">
+                    <a class="nav-link text-light" id="tab-solicitacoes-btn" href="#" onclick="switchTab('solicitacoes')">Solicitações de Serviços</a>
+                </li>
+            </ul>
+            <a href="{{ url_for('admin_logout') }}" class="btn btn-outline-light btn-sm">Sair</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <!-- SEÇÃO 1: GERENCIAR PROJETOS -->
+        <div id="secao-projetos">
+            <div class="card shadow-sm mb-5">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Editor de Páginas: Adicionar / Modificar Projetos</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('salvar_projeto') }}" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Título do Projeto</strong></label>
+                            <input type="text" class="form-control" name="titulo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Descrição do Projeto</strong></label>
+                            <textarea class="form-control" name="descricao" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Tipo de Projeto (Categorias NexusTI)</strong></label>
+                            <select class="form-control" name="tipo_projeto" required>
+                                <option value="Suporte Técnico Avançado">Suporte Técnico Avançado</option>
+                                <option value="Infraestrutura de Redes">Infraestrutura de Redes</option>
+                                <option value="Segurança da Informação">Segurança da Informação</option>
+                                <option value="Desenvolvimento de Software">Desenvolvimento de Software</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="sketchup_link" class="form-label"><strong>Link do Projeto SketchUp (Opcional)</strong></label>
+                            <input type="url" class="form-control" id="sketchup_link" name="sketchup_link" placeholder="https://app.sketchup.com/share/...">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Fotos do Serviço (Até 4 imagens)</strong></label>
+                            <div class="upload-grid">
+                                <div class="upload-slot" onclick="document.getElementById('file-cad-1').click()">
+                                    <span class="slot-number">1</span>
+                                    <div class="add-btn" id="btn-cad-1">+</div>
+                                    <div class="remove-btn" id="rem-cad-1" style="display:none;" onclick="event.stopPropagation(); removeImage('file-cad-1', 'preview-cad-1', 'btn-cad-1', 'rem-cad-1')">&times;</div>
+                                    <input type="file" id="file-cad-1" name="imagem" accept="image/*" onchange="previewImage(event, 'preview-cad-1', 'btn-cad-1', 'rem-cad-1')">
+                                    <img id="preview-cad-1" src="" style="display:none;">
+                                </div>
+                                <div class="upload-slot" onclick="document.getElementById('file-cad-2').click()">
+                                    <span class="slot-number">2</span>
+                                    <div class="add-btn" id="btn-cad-2">+</div>
+                                    <div class="remove-btn" id="rem-cad-2" style="display:none;" onclick="event.stopPropagation(); removeImage('file-cad-2', 'preview-cad-2', 'btn-cad-2', 'rem-cad-2')">&times;</div>
+                                    <input type="file" id="file-cad-2" name="imagem2" accept="image/*" onchange="previewImage(event, 'preview-cad-2', 'btn-cad-2', 'rem-cad-2')">
+                                    <img id="preview-cad-2" src="" style="display:none;">
+                                </div>
+                                <div class="upload-slot" onclick="document.getElementById('file-cad-3').click()">
+                                    <span class="slot-number">3</span>
+                                    <div class="add-btn" id="btn-cad-3">+</div>
+                                    <div class="remove-btn" id="rem-cad-3" style="display:none;" onclick="event.stopPropagation(); removeImage('file-cad-3', 'preview-cad-3', 'btn-cad-3', 'rem-cad-3')">&times;</div>
+                                    <input type="file" id="file-cad-3" name="imagem3" accept="image/*" onchange="previewImage(event, 'preview-cad-3', 'btn-cad-3', 'rem-cad-3')">
+                                    <img id="preview-cad-3" src="" style="display:none;">
+                                </div>
+                                <div class="upload-slot" onclick="document.getElementById('file-cad-4').click()">
+                                    <span class="slot-number">4</span>
+                                    <div class="add-btn" id="btn-cad-4">+</div>
+                                    <div class="remove-btn" id="rem-cad-4" style="display:none;" onclick="event.stopPropagation(); removeImage('file-cad-4', 'preview-cad-4', 'btn-cad-4', 'rem-cad-4')">&times;</div>
+                                    <input type="file" id="file-cad-4" name="imagem4" accept="image/*" onchange="previewImage(event, 'preview-cad-4', 'btn-cad-4', 'rem-cad-4')">
+                                    <img id="preview-cad-4" src="" style="display:none;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning fw-bold text-dark px-4">Cadastrar Projeto</button>
+                        <button type="reset" class="btn btn-secondary">Limpar</button>
+                    </form>
+                </div>
+            </div>
+
+            <h3 class="mb-3">Projetos Existentes no Site</h3>
+            <div class="row">
+                {% for projeto in projetos %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            {% if projeto.imagem %}
+                                <img src="{{ url_for('static', filename='uploads/' ~ projeto.imagem) }}" class="card-img-top" alt="Imagem" style="height: 160px; object-fit: cover;">
+                            {% endif %}
+                            <div class="card-body">
+                                <span class="badge bg-secondary mb-2">{{ projeto.tipo_projeto }}</span>
+                                <h5 class="card-title">{{ projeto.titulo }}</h5>
+                                <p class="card-text text-truncate">{{ projeto.descricao }}</p>
+                                
+                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ projeto.id }}">
+                                    Editar
+                                </button>
+                                <form action="{{ url_for('excluir_projeto', id=projeto.id) }}" method="POST" class="d-inline">
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Deseja excluir este projeto?')">Excluir</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL DE EDIÇÃO DE PROJETO -->
+                    <div class="modal fade" id="modalEditar{{ projeto.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <form action="{{ url_for('salvar_projeto') }}" method="POST" enctype="multipart/form-data">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Editar Projeto: {{ projeto.titulo }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" name="projeto_id" value="{{ projeto.id }}">
+
+                                        <div class="mb-3">
+                                            <label class="form-label">Título do Projeto</label>
+                                            <input type="text" class="form-control" name="titulo" value="{{ projeto.titulo }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Descrição do Projeto</label>
+                                            <textarea class="form-control" name="descricao" rows="3" required>{{ projeto.descricao }}</textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Tipo de Projeto</label>
+                                            <select class="form-control" name="tipo_projeto" required>
+                                                <option value="Suporte Técnico Avançado" {% if projeto.tipo_projeto == 'Suporte Técnico Avançado' %}selected{% endif %}>Suporte Técnico Avançado</option>
+                                                <option value="Infraestrutura de Redes" {% if projeto.tipo_projeto == 'Infraestrutura de Redes' %}selected{% endif %}>Infraestrutura de Redes</option>
+                                                <option value="Segurança da Informação" {% if projeto.tipo_projeto == 'Segurança da Informação' %}selected{% endif %}>Segurança da Informação</option>
+                                                <option value="Desenvolvimento de Software" {% if projeto.tipo_projeto == 'Desenvolvimento de Software' %}selected{% endif %}>Desenvolvimento de Software</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="sketchup_link_{{ projeto.id }}" class="form-label"><strong>Link do Projeto SketchUp (Opcional)</strong></label>
+                                            <input type="url" class="form-control" id="sketchup_link_{{ projeto.id }}" name="sketchup_link" value="{{ projeto.sketchup_link if projeto.sketchup_link else '' }}" placeholder="https://app.sketchup.com/share/...">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Fotos do Serviço</strong></label>
+                                            <div class="upload-grid">
+                                                <!-- Slot 1 -->
+                                                <div class="upload-slot" onclick="document.getElementById('file-edit-1-{{ projeto.id }}').click()">
+                                                    <span class="slot-number">1</span>
+                                                    {% if projeto.imagem %}
+                                                        <div class="add-btn" id="btn-edit-1-{{ projeto.id }}" style="display:none;">+</div>
+                                                        <div class="remove-btn" id="rem-edit-1-{{ projeto.id }}" onclick="event.stopPropagation(); removeImage('file-edit-1-{{ projeto.id }}', 'preview-edit-1-{{ projeto.id }}', 'btn-edit-1-{{ projeto.id }}', 'rem-edit-1-{{ projeto.id }}')">&times;</div>
+                                                        <img src="{{ url_for('static', filename='uploads/' ~ projeto.imagem) }}" id="preview-edit-1-{{ projeto.id }}">
+                                                    {% else %}
+                                                        <div class="add-btn" id="btn-edit-1-{{ projeto.id }}">+</div>
+                                                        <div class="remove-btn" id="rem-edit-1-{{ projeto.id }}" style="display:none;" onclick="event.stopPropagation(); removeImage('file-edit-1-{{ projeto.id }}', 'preview-edit-1-{{ projeto.id }}', 'btn-edit-1-{{ projeto.id }}', 'rem-edit-1-{{ projeto.id }}')">&times;</div>
+                                                        <img id="preview-edit-1-{{ projeto.id }}" src="" style="display:none;">
+                                                    {% endif %}
+                                                    <input type="file" id="file-edit-1-{{ projeto.id }}" name="imagem" accept="image/*" onchange="previewImage(event, 'preview-edit-1-{{ projeto.id }}', 'btn-edit-1-{{ projeto.id }}', 'rem-edit-1-{{ projeto.id }}')">
+                                                </div>
+                                                <!-- Slot 2 -->
+                                                <div class="upload-slot" onclick="document.getElementById('file-edit-2-{{ projeto.id }}').click()">
+                                                    <span class="slot-number">2</span>
+                                                    {% if projeto.imagem2 %}
+                                                        <div class="add-btn" id="btn-edit-2-{{ projeto.id }}" style="display:none;">+</div>
+                                                        <div class="remove-btn" id="rem-edit-2-{{ projeto.id }}" onclick="event.stopPropagation(); removeImage('file-edit-2-{{ projeto.id }}', 'preview-edit-2-{{ projeto.id }}', 'btn-edit-2-{{ projeto.id }}', 'rem-edit-2-{{ projeto.id }}')">&times;</div>
+                                                        <img src="{{ url_for('static', filename='uploads/' ~ projeto.imagem2) }}" id="preview-edit-2-{{ projeto.id }}">
+                                                    {% else %}
+                                                        <div class="add-btn" id="btn-edit-2-{{ projeto.id }}">+</div>
+                                                        <div class="remove-btn" id="rem-edit-2-{{ projeto.id }}" style="display:none;" onclick="event.stopPropagation(); removeImage('file-edit-2-{{ projeto.id }}', 'preview-edit-2-{{ projeto.id }}', 'btn-edit-2-{{ projeto.id }}', 'rem-edit-2-{{ projeto.id }}')">&times;</div>
+                                                        <img id="preview-edit-2-{{ projeto.id }}" src="" style="display:none;">
+                                                    {% endif %}
+                                                    <input type="file" id="file-edit-2-{{ projeto.id }}" name="imagem2" accept="image/*" onchange="previewImage(event, 'preview-edit-2-{{ projeto.id }}', 'btn-edit-2-{{ projeto.id }}', 'rem-edit-2-{{ projeto.id }}')">
+                                                </div>
+                                                <!-- Slot 3 -->
+                                                <div class="upload-slot" onclick="document.getElementById('file-edit-3-{{ projeto.id }}').click()">
+                                                    <span class="slot-number">3</span>
+                                                    {% if projeto.imagem3 %}
+                                                        <div class="add-btn" id="btn-edit-3-{{ projeto.id }}" style="display:none;">+</div>
+                                                        <div class="remove-btn" id="rem-edit-3-{{ projeto.id }}" onclick="event.stopPropagation(); removeImage('file-edit-3-{{ projeto.id }}', 'preview-edit-3-{{ projeto.id }}', 'btn-edit-3-{{ projeto.id }}', 'rem-edit-3-{{ projeto.id }}')">&times;</div>
+                                                        <img src="{{ url_for('static', filename='uploads/' ~ projeto.imagem3) }}" id="preview-edit-3-{{ projeto.id }}">
+                                                    {% else %}
+                                                        <div class="add-btn" id="btn-edit-3-{{ projeto.id }}">+</div>
+                                                        <div class="remove-btn" id="rem-edit-3-{{ projeto.id }}" style="display:none;" onclick="event.stopPropagation(); removeImage('file-edit-3-{{ projeto.id }}', 'preview-edit-3-{{ projeto.id }}', 'btn-edit-3-{{ projeto.id }}', 'rem-edit-3-{{ projeto.id }}')">&times;</div>
+                                                        <img id="preview-edit-3-{{ projeto.id }}" src="" style="display:none;">
+                                                    {% endif %}
+                                                    <input type="file" id="file-edit-3-{{ projeto.id }}" name="imagem3" accept="image/*" onchange="previewImage(event, 'preview-edit-3-{{ projeto.id }}', 'btn-edit-3-{{ projeto.id }}', 'rem-edit-3-{{ projeto.id }}')">
+                                                </div>
+                                                <!-- Slot 4 -->
+                                                <div class="upload-slot" onclick="document.getElementById('file-edit-4-{{ projeto.id }}').click()">
+                                                    <span class="slot-number">4</span>
+                                                    {% if projeto.imagem4 %}
+                                                        <div class="add-btn" id="btn-edit-4-{{ projeto.id }}" style="display:none;">+</div>
+                                                        <div class="remove-btn" id="rem-edit-4-{{ projeto.id }}" onclick="event.stopPropagation(); removeImage('file-edit-4-{{ projeto.id }}', 'preview-edit-4-{{ projeto.id }}', 'btn-edit-4-{{ projeto.id }}', 'rem-edit-4-{{ projeto.id }}')">&times;</div>
+                                                        <img src="{{ url_for('static', filename='uploads/' ~ projeto.imagem4) }}" id="preview-edit-4-{{ projeto.id }}">
+                                                    {% else %}
+                                                        <div class="add-btn" id="btn-edit-4-{{ projeto.id }}">+</div>
+                                                        <div class="remove-btn" id="rem-edit-4-{{ projeto.id }}" style="display:none;" onclick="event.stopPropagation(); removeImage('file-edit-4-{{ projeto.id }}', 'preview-edit-4-{{ projeto.id }}', 'btn-edit-4-{{ projeto.id }}', 'rem-edit-4-{{ projeto.id }}')">&times;</div>
+                                                        <img id="preview-edit-4-{{ projeto.id }}" src="" style="display:none;">
+                                                    {% endif %}
+                                                    <input type="file" id="file-edit-4-{{ projeto.id }}" name="imagem4" accept="image/*" onchange="previewImage(event, 'preview-edit-4-{{ projeto.id }}', 'btn-edit-4-{{ projeto.id }}', 'rem-edit-4-{{ projeto.id }}')">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <p class="text-muted">Nenhum projeto cadastrado.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- SEÇÃO 2: SOLICITAÇÕES DE SERVIÇOS FEITAS NO SITE -->
+        <div id="secao-solicitacoes" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Gerenciamento de Solicitações de Serviços</h3>
+                <span class="badge bg-primary fs-6">Total: {{ solicitacoes|length if solicitacoes else 0 }}</span>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID / Cliente</th>
+                                    <th>Contato</th>
+                                    <th>Serviço Solicitado</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if solicitacoes %}
+                                    {% for sol in solicitacoes %}
+                                    <tr>
+                                        <td>
+                                            <span class="fw-bold">#{{ sol.id }}</span><br>
+                                            <span class="text-dark fw-semibold">{{ sol.nome_completo }}</span>
+                                        </td>
+                                        <td>
+                                            <div>{{ sol.email }}</div>
+                                            <small class="text-muted">{{ sol.telefone }}</small>
+                                        </td>
+                                        <td>
+                                            {% set servico = sol.tipo_servico if sol.tipo_servico else 'Geral' %}
+                                            {% if 'Infraestrutura' in servico %}
+                                                <span class="badge bg-primary text-white">{{ servico }}</span>
+                                            {% elif 'Segurança' in servico %}
+                                                <span class="badge bg-danger text-white">{{ servico }}</span>
+                                            {% elif 'Desenvolvimento' in servico %}
+                                                <span class="badge bg-success text-white">{{ servico }}</span>
+                                            {% elif 'Suporte' in servico %}
+                                                <span class="badge bg-warning text-dark">{{ servico }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary text-white">{{ servico }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <form action="{{ url_for('atualizar_solicitacao', id=sol.id) }}" method="POST" class="d-inline">
+                                                <input type="hidden" name="tipo_servico" value="{{ sol.tipo_servico }}">
+                                                <select name="status" class="form-select form-select-sm fw-bold 
+                                                    {% if sol.status == 'Pendente' %} text-warning border-warning bg-light 
+                                                    {% elif sol.status == 'Em Andamento' %} text-primary border-primary bg-light 
+                                                    {% elif sol.status == 'Concluído' %} text-success border-success bg-light 
+                                                    {% elif sol.status == 'Cancelado' %} text-danger border-danger bg-light 
+                                                    {% endif %}" onchange="this.form.submit()">
+                                                    <option value="Pendente" {% if sol.status == 'Pendente' %}selected{% endif %}>Pendente</option>
+                                                    <option value="Em Andamento" {% if sol.status == 'Em Andamento' %}selected{% endif %}>Em Andamento</option>
+                                                    <option value="Concluído" {% if sol.status == 'Concluído' %}selected{% endif %}>Concluído</option>
+                                                    <option value="Cancelado" {% if sol.status == 'Cancelado' %}selected{% endif %}>Cancelado</option>
+                                                </select>
+                                            </form>
+                                        </td>
+                                        <td class="text-end">
+                                            <!-- Botão Visualizar Detalhes -->
+                                            <button type="button" class="btn btn-info btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalVisualizar{{ sol.id }}">
+                                                Visualizar
+                                            </button>
+                                            
+                                            <!-- Botão Excluir -->
+                                            <form action="{{ url_for('excluir_solicitacao', id=sol.id) }}" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Deseja realmente remover esta solicitação de serviço?')">Excluir</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+
+                                    <!-- MODAL DE VISUALIZAÇÃO E EDIÇÃO DO PEDIDO -->
+                                    <div class="modal fade" id="modalVisualizar{{ sol.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form action="{{ url_for('atualizar_solicitacao', id=sol.id) }}" method="POST">
+                                                    <div class="modal-header bg-dark text-white">
+                                                        <h5 class="modal-title">Detalhes da Solicitação #{{ sol.id }}</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                                    </div>
+                                                    <div class="modal-body text-start">
+                                                        <p><strong>Nome Completo:</strong> {{ sol.nome_completo }}</p>
+                                                        <p><strong>E-mail:</strong> {{ sol.email }}</p>
+                                                        <p><strong>Telefone:</strong> {{ sol.telefone }}</p>
+                                                        <p><strong>Documento (CPF/CNPJ):</strong> {{ sol.documento }}</p>
+                                                        <hr>
+                                                        <p><strong>Endereço:</strong><br>
+                                                            Rua: {{ sol.rua }}, Nº {{ sol.numero }} {% if sol.complemento %}({{ sol.complemento }}){% endif %}<br>
+                                                            Bairro: {{ sol.bairro }}<br>
+                                                            Cidade/Estado: {{ sol.cidade }} - {{ sol.estado }}<br>
+                                                            CEP: {{ sol.cep }}
+                                                        </p>
+                                                        <hr>
+                                                        <p><strong>Descrição do Problema / Serviço:</strong><br>
+                                                            <span class="text-muted">{{ sol.descricao if sol.descricao else 'Nenhuma descrição informada pelo cliente.' }}</span>
+                                                        </p>
+                                                        <hr>
+                                                        <div class="mb-3">
+                                                            <label class="form-label"><strong>Tipo de Serviço Solicitado:</strong></label>
+                                                            <select name="tipo_servico" class="form-select">
+                                                                <option value="Geral" {% if sol.tipo_servico == 'Geral' or not sol.tipo_servico %}selected{% endif %}>Geral</option>
+                                                                <option value="Infraestrutura de Redes" {% if sol.tipo_servico == 'Infraestrutura de Redes' %}selected{% endif %}>Infraestrutura de Redes</option>
+                                                                <option value="Segurança da Informação" {% if sol.tipo_servico == 'Segurança da Informação' %}selected{% endif %}>Segurança da Informação</option>
+                                                                <option value="Desenvolvimento de Software" {% if sol.tipo_servico == 'Desenvolvimento de Software' %}selected{% endif %}>Desenvolvimento de Software</option>
+                                                                <option value="Suporte Técnico Avançado" {% if sol.tipo_servico == 'Suporte Técnico Avançado' %}selected{% endif %}>Suporte Técnico Avançado</option>
+                                                            </select>
+                                                        </div>
+                                                        <input type="hidden" name="status" value="{{ sol.status }}">
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+                                                        <button type="submit" class="btn btn-primary btn-sm">Salvar Alterações</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">Nenhuma solicitação de serviço registrada no site ainda.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts do Painel -->
+    <script>
+        function switchTab(tabName) {
+            const secProjetos = document.getElementById('secao-projetos');
+            const secSolicitacoes = document.getElementById('secao-solicitacoes');
+            const btnProjetos = document.getElementById('tab-projetos-btn');
+            const btnSolicitacoes = document.getElementById('tab-solicitacoes-btn');
+
+            if (tabName === 'projetos') {
+                secProjetos.style.display = 'block';
+                secSolicitacoes.style.display = 'none';
+                btnProjetos.classList.add('active', 'text-white');
+                btnProjetos.classList.remove('text-light');
+                btnSolicitacoes.classList.remove('active', 'text-white');
+                btnSolicitacoes.classList.add('text-light');
+            } else {
+                secProjetos.style.display = 'none';
+                secSolicitacoes.style.display = 'block';
+                btnSolicitacoes.classList.add('active', 'text-white');
+                btnSolicitacoes.classList.remove('text-light');
+                btnProjetos.classList.remove('active', 'text-white');
+                btnProjetos.classList.add('text-light');
+            }
+        }
+
+        function previewImage(event, previewId, btnId, removeBtnId) {
+            const reader = new FileReader();
+            reader.onload = function(){
+                const output = document.getElementById(previewId);
+                output.src = reader.result;
+                output.style.display = 'block';
+                
+                const btn = document.getElementById(btnId);
+                if(btn) btn.style.display = 'none';
+
+                const remBtn = document.getElementById(removeBtnId);
+                if(remBtn) remBtn.style.display = 'flex';
+            };
+            if(event.target.files[0]){
+                reader.readAsDataURL(event.target.files[0]);
+            }
+        }
+
+        function removeImage(fileInputId, previewId, btnId, removeBtnId) {
+            const fileInput = document.getElementById(fileInputId);
+            fileInput.value = ""; 
+
+            const output = document.getElementById(previewId);
+            output.src = "";
+            output.style.display = 'none';
+
+            const btn = document.getElementById(btnId);
+            if(btn) btn.style.display = 'flex';
+
+            const remBtn = document.getElementById(removeBtnId);
+            if(remBtn) remBtn.style.display = 'none';
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
