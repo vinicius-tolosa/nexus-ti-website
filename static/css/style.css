@@ -24,6 +24,7 @@ body {
     min-height: 100vh;
 }
 
+/* ESTRUTURA DE CONTAINER E GRID */
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -38,12 +39,14 @@ body {
     justify-content: center;
 }
 
+/* CORREÇÃO APLICADA: Permite que caibam exatamente 2 cards por linha */
 .col-custom {
     flex: 0 1 48%;
     min-width: 280px;
     max-width: 550px;
 }
 
+/* HERO SECTION */
 .hero {
     background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.75)), url('../images/fundo-hero.jpg') center/cover no-repeat;
     color: #ffffff;
@@ -88,6 +91,7 @@ body {
     width: 100%;
 }
 
+/* CARDS E EFEITO HOVER EXATO */
 .card {
     background: #ffffff;
     padding: 35px 25px;
@@ -152,6 +156,7 @@ body {
     border-color: #0d6efd;
 }
 
+/* NAVBAR */
 .navbar {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
@@ -167,6 +172,7 @@ body {
     margin-right: 8px;
 }
 
+/* FOOTER */
 footer {
     margin-top: auto;
 }
@@ -181,6 +187,7 @@ footer a:hover {
     transition: color 0.3s ease;
 }
 
+/* BOTÕES */
 .btn {
     display: inline-block;
     padding: 0.5rem 1.25rem;
@@ -202,6 +209,7 @@ footer a:hover {
     transform: translateY(-2px);
 }
 
+/* FORMULÁRIOS */
 .form-control, .form-select {
     border-radius: 5px;
     border: 1px solid #ddd;
@@ -220,12 +228,14 @@ footer a:hover {
     color: #333;
 }
 
+/* BADGES */
 .badge {
     padding: 0.5rem 1rem;
     border-radius: 5px;
     font-weight: 600;
 }
 
+/* TABELAS */
 .table {
     border-radius: 10px;
     overflow: hidden;
@@ -240,6 +250,7 @@ footer a:hover {
     background-color: #f5f5f5;
 }
 
+/* ALERTAS */
 .alert {
     border-radius: 10px;
     border: none;
@@ -250,6 +261,7 @@ footer a:hover {
 .alert-danger { background-color: #f8d7da; color: #721c24; }
 .alert-info { background-color: #d1ecf1; color: #0c5460; }
 
+/* MODAIS */
 .modal-content {
     border-radius: 10px;
     border: none;
@@ -265,6 +277,7 @@ footer a:hover {
     filter: brightness(0) invert(1);
 }
 
+/* SEÇÕES */
 section {
     padding: 60px 0;
 }
@@ -273,10 +286,12 @@ section {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+/* UTILITÁRIOS DE BORDA */
 .border-left-primary { border-left: 4px solid #0d6efd; }
 .border-left-success { border-left: 4px solid #198754; }
 .border-left-info { border-left: 4px solid #0dcaf0; }
 
+/* GRID DE UPLOAD (MÚLTIPLOS SLOTS) */
 .upload-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -335,6 +350,7 @@ section {
     display: none;
 }
 
+/* MAPA E CORES EXTRAS */
 .mapa-container {
     width: 800px;
     max-width: 800px;
@@ -354,77 +370,38 @@ section {
     color: #000000 !important;
 }
 
+/* ANIMAÇÕES */
 @keyframes slideIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
+/* ACESSIBILIDADE */
 a:focus, button:focus {
     outline: 2px solid #667eea;
     outline-offset: 2px;
 }
 
-/* Projetos em destaque no formato de artigos: imagem lateral e texto ao lado. */
-section:has(.project-card) .container > div > div:has(> .project-card) {
-    flex: 1 1 100% !important;
-    width: 100% !important;
-    max-width: none !important;
-}
-
-section:has(.project-card) .project-card {
-    display: grid !important;
-    grid-template-columns: minmax(260px, 32%) 1fr auto;
-    align-items: stretch;
-    padding: 0 !important;
-    min-height: 220px;
-    text-align: left;
-    overflow: hidden;
-}
-
-section:has(.project-card) .project-card > .project-slider {
-    height: 100% !important;
-    min-height: 220px;
-    border-radius: 0 !important;
-}
-
-section:has(.project-card) .project-card > div[style*="padding: 20px"] {
-    padding: 28px 30px !important;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-section:has(.project-card) .project-card > div[style*="padding: 0 20px"] {
-    display: flex;
-    align-items: center;
-    padding: 24px 28px 24px 0 !important;
-}
-
-section:has(.project-card) .project-card > div[style*="padding: 0 20px"] button {
-    white-space: nowrap;
-}
-
-section:has(.project-card) .project-card:hover {
-    transform: translateY(-4px);
-}
-
+/* RESPONSIVO */
 @media (max-width: 768px) {
-    .hero-content h1 { font-size: 2rem; }
-    section { padding: 40px 0; }
-    .row { flex-direction: column; align-items: center; }
-    .col-custom { max-width: 100%; width: 100%; }
-
-    section:has(.project-card) .project-card {
-        display: flex !important;
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    section {
+        padding: 40px 0;
+    }
+    .row {
         flex-direction: column;
+        align-items: center;
     }
-
-    section:has(.project-card) .project-card > .project-slider {
-        height: 220px !important;
-        min-height: 220px;
-    }
-
-    section:has(.project-card) .project-card > div[style*="padding: 0 20px"] {
-        padding: 0 20px 20px !important;
+    .col-custom {
+        max-width: 100%;
+        width: 100%;
     }
 }
