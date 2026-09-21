@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-3">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ projeto.titulo }}</li>
+            </ol>
+        </nav>
+        <h1 class="mb-2">{{ projeto.titulo }}</h1>
+        <span class="badge bg-primary mb-3">{{ projeto.tipo_projeto }}</span>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Coluna do Slider de Imagens -->
+            <div class="col-lg-7">
+                <div class="project-slider shadow rounded" style="position: relative; height: 450px; overflow: hidden; background-color: #212529;">
+                    {% if projeto.imagem %}
+                    <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="slide-img active-slide" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 1;">
+                    {% endif %}
+                    
+                    {% if projeto.imagem2 %}
+                    <img src="{{ url_for('static', filename='uploads/' + projeto.imagem2) }}" class="slide-img" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 0;">
+                    {% endif %}
+                    
+                    {% if projeto.imagem3 %}
+                    <img src="{{ url_for('static', filename='uploads/' + projeto.imagem3) }}" class="slide-img" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 0;">
+                    {% endif %}
+
+                    {% if not projeto.imagem and not projeto.imagem2 and not projeto.imagem3 %}
+                    <div class="d-flex align-items-center justify-content-center h-100 bg-secondary">
+                        <i class="fas fa-image text-white fa-4x"></i>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Coluna de Informações do Projeto -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex flex-column justify-content-between p-4">
+                        <div>
+                            <h3 class="card-title mb-3">Sobre o Projeto</h3>
+                            <hr>
+                            <p class="text-muted mb-4" style="white-space: pre-line; line-height: 1.8;">{{ projeto.descricao }}</p>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <!-- CORRIGIDO PARA A NOVA ROTA DE SOLICITAÇÃO -->
+                            <a href="{{ url_for('solicitar_servico', servico=projeto.tipo_projeto) }}" class="btn btn-primary w-100 py-2 fw-bold mb-2">
+                                <i class="fas fa-handshake"></i> Solicitar Serviço Semelhante
+                            </a>
+                            <a href="javascript:history.back()" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Seção Dinâmica do SketchUp (Exibida apenas se houver link cadastrado) -->
+{% if projeto.sketchup_link %}
+<div class="container py-5 text-center">
+    <h2 style="margin-bottom: 30px; font-weight: 700; color: #111827;">Visualização 3D (SketchUp):</h2>
+    <div class="mapa-container ratio ratio-16x9 shadow-sm rounded overflow-hidden">
+        <iframe
+        src="{{ projeto.sketchup_link }}"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+</div>
+{% endif %}
+
+<!-- SCRIPT DO SLIDER AUTOMÁTICO (A CADA 3 SEGUNDOS) -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const sliders = document.querySelectorAll('.project-slider');
+
+        sliders.forEach(slider => {
+            const images = slider.querySelectorAll('.slide-img');
+            if (images.length > 1) {
+                let currentIndex = 0;
+
+                setInterval(() => {
+                    images[currentIndex].style.opacity = '0';
+                    images[currentIndex].classList.remove('active-slide');
+
+                    currentIndex = (currentIndex + 1) % images.length;
+
+                    images[currentIndex].style.opacity = '1';
+                    images[currentIndex].classList.add('active-slide');
+                }, 3000); // 3 segundos
+            }
+        });
+    });
+</script>
+{% endblock %}
