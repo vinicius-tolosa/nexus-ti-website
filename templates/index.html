@@ -1,25 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
+<!-- Estilos específicos para o Hero e Layout sem Bootstrap -->
+<style>
+    .hero {
+        background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)), url('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+        color: #ffffff;
+        text-align: center;
+        padding: 100px 0;
+    }
+    .hero p.lead {
+        color: #94a3b8 !important;
+    }
+</style>
+
 <!-- Hero Section -->
-<section class="hero-section bg-gradient text-light py-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">Soluções em TI para seu Negócio</h1>
-                <p class="lead mb-4">Infraestrutura, segurança, desenvolvimento e suporte técnico de excelência para empresas de todos os tamanhos.</p>
-                <div class="d-flex gap-3">
-                    <a href="/cadastro-cliente" class="btn btn-primary btn-lg">
+<section id="inicio" class="hero">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+        <div style="display: flex; justify-content: center; text-align: center;">
+            <div style="max-width: 800px; width: 100%;">
+                <h1 style="font-size: 2.8rem; font-weight: 700; margin-bottom: 20px;">Soluções em TI para seu Negócio</h1>
+                <p class="lead" style="font-size: 1.2rem; margin-bottom: 30px;">Infraestrutura, segurança, desenvolvimento e suporte técnico de excelência para empresas de todos os tamanhos.</p>
+                <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                    <a href="/cadastro-cliente" style="background-color: #0d6efd; color: #fff; padding: 12px 24px; font-size: 1rem; text-decoration: none; border-radius: 5px; display: inline-flex; align-items: center; gap: 8px;">
                         <i class="fas fa-user-plus"></i> Solicitar Orçamento
                     </a>
-                    <a href="#servicos" class="btn btn-outline-light btn-lg">
+                    <a href="#servicos" style="background-color: transparent; border: 2px solid #fff; color: #fff; padding: 12px 24px; font-size: 1rem; text-decoration: none; border-radius: 5px; display: inline-flex; align-items: center; gap: 8px;">
                         <i class="fas fa-chevron-down"></i> Conhecer Serviços
                     </a>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="text-center">
-                    <i class="fas fa-server" style="font-size: 200px; opacity: 0.2;"></i>
                 </div>
             </div>
         </div>
@@ -27,76 +35,105 @@
 </section>
 
 <!-- Serviços Destaque -->
-<section id="servicos" class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center mb-5">Nossos Serviços</h2>
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm service-card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-network-wired fa-3x text-primary mb-3"></i>
-                        <h5 class="card-title">Infraestrutura de Redes</h5>
-                        <p class="card-text text-muted">Projeto, implantação e manutenção de redes corporativas.</p>
-                        <a href="/infraestrutura" class="btn btn-sm btn-primary">Saiba Mais</a>
+<section id="servicos" style="padding: 60px 0;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+        <h2 style="text-align: center; margin-bottom: 40px; font-weight: 700; color: #111827;">Nossos Serviços</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+            
+            <div style="flex: 1; min-width: 250px; max-width: 280px; display: flex;">
+                <div class="card service-card" style="width: 100%; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: #fff;">
+                    <div>
+                        <i class="fas fa-network-wired" style="font-size: 3rem; color: var(--primary, #0d6efd); margin-bottom: 20px;"></i>
+                        <h5 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; color: #111827;">Infraestrutura de Redes</h5>
+                        <p style="color: #64748b; font-size: 0.9rem;">Projeto, implantação e manutenção de redes corporativas.</p>
+                    </div>
+                    <div>
+                        <a href="/infraestrutura" style="display: inline-block; background-color: #0d6efd; color: #fff; padding: 8px 16px; border-radius: 4px; text-decoration: none; margin-top: 15px; font-size: 0.9rem;">Saiba Mais</a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm service-card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-shield-alt fa-3x text-danger mb-3"></i>
-                        <h5 class="card-title">Segurança da Informação</h5>
-                        <p class="card-text text-muted">Proteção de dados e sistemas contra ameaças.</p>
-                        <a href="/seguranca" class="btn btn-sm btn-danger">Saiba Mais</a>
+
+            <div style="flex: 1; min-width: 250px; max-width: 280px; display: flex;">
+                <div class="card service-card" style="width: 100%; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: #fff;">
+                    <div>
+                        <i class="fas fa-shield-alt" style="font-size: 3rem; color: var(--danger, #dc3545); margin-bottom: 20px;"></i>
+                        <h5 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; color: #111827;">Segurança da Informação</h5>
+                        <p style="color: #64748b; font-size: 0.9rem;">Proteção de dados e sistemas contra ameaças.</p>
+                    </div>
+                    <div>
+                        <a href="/seguranca" style="display: inline-block; background-color: #dc3545; color: #fff; padding: 8px 16px; border-radius: 4px; text-decoration: none; margin-top: 15px; font-size: 0.9rem;">Saiba Mais</a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm service-card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-code fa-3x text-success mb-3"></i>
-                        <h5 class="card-title">Desenvolvimento de Software</h5>
-                        <p class="card-text text-muted">Aplicações web e mobile personalizadas.</p>
-                        <a href="/desenvolvimento" class="btn btn-sm btn-success">Saiba Mais</a>
+
+            <div style="flex: 1; min-width: 250px; max-width: 280px; display: flex;">
+                <div class="card service-card" style="width: 100%; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: #fff;">
+                    <div>
+                        <i class="fas fa-code" style="font-size: 3rem; color: var(--success, #198754); margin-bottom: 20px;"></i>
+                        <h5 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; color: #111827;">Desenvolvimento de Software</h5>
+                        <p style="color: #64748b; font-size: 0.9rem;">Aplicações web e mobile personalizadas.</p>
+                    </div>
+                    <div>
+                        <a href="/desenvolvimento" style="display: inline-block; background-color: #198754; color: #fff; padding: 8px 16px; border-radius: 4px; text-decoration: none; margin-top: 15px; font-size: 0.9rem;">Saiba Mais</a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="card h-100 shadow-sm service-card">
-                    <div class="card-body text-center">
-                        <i class="fas fa-headset fa-3x text-info mb-3"></i>
-                        <h5 class="card-title">Suporte Técnico Avançado</h5>
-                        <p class="card-text text-muted">Suporte 24/7 para seus sistemas.</p>
-                        <a href="/suporte" class="btn btn-sm btn-info">Saiba Mais</a>
+
+            <div style="flex: 1; min-width: 250px; max-width: 280px; display: flex;">
+                <div class="card service-card" style="width: 100%; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; background: #fff;">
+                    <div>
+                        <i class="fas fa-headset" style="font-size: 3rem; color: var(--info, #0dcaf0); margin-bottom: 20px;"></i>
+                        <h5 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; color: #111827;">Suporte Técnico Avançado</h5>
+                        <p style="color: #64748b; font-size: 0.9rem;">Suporte 24/7 para seus sistemas.</p>
+                    </div>
+                    <div>
+                        <a href="/suporte" style="display: inline-block; background-color: #0dcaf0; color: #000; padding: 8px 16px; border-radius: 4px; text-decoration: none; margin-top: 15px; font-size: 0.9rem;">Saiba Mais</a>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </section>
 
 <!-- Projetos em Destaque -->
-<section class="py-5">
-    <div class="container">
-        <h2 class="text-center mb-5">Projetos em Destaque</h2>
-        <div class="row g-4">
+<section style="padding: 60px 0; background-color: #f1f5f9;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+        <h2 style="text-align: center; margin-bottom: 40px; font-weight: 700; color: #111827;">Projetos em Destaque</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
             {% for projeto in projetos %}
-            <div class="col-md-6 col-lg-4">
-                <div class="card h-100 project-card shadow-sm">
-                    {% if projeto.imagem %}
-                    <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="card-img-top" alt="{{ projeto.titulo }}">
-                    {% else %}
-                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
-                        <i class="fas fa-image text-white fa-3x"></i>
+            <div style="flex: 1; min-width: 280px; max-width: 350px; display: flex;">
+                <div class="card project-card" style="width: 100%; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #e5e7eb; border-radius: 8px; background: #fff;">
+                    
+                    <!-- SLIDER DO CARD PRINCIPAL -->
+                    <div class="project-slider" style="position: relative; height: 200px; overflow: hidden; background-color: #212529; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                        {% if projeto.imagem %}
+                        <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="slide-img active-slide" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 1;">
+                        {% endif %}
+                        
+                        {% if projeto.imagem2 %}
+                        <img src="{{ url_for('static', filename='uploads/' + projeto.imagem2) }}" class="slide-img" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 0;">
+                        {% endif %}
+                        
+                        {% if projeto.imagem3 %}
+                        <img src="{{ url_for('static', filename='uploads/' + projeto.imagem3) }}" class="slide-img" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 0;">
+                        {% endif %}
+
+                        {% if not projeto.imagem and not projeto.imagem2 and not projeto.imagem3 %}
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; background-color: #6c757d;">
+                            <i class="fas fa-image text-white fa-3x" style="color: #fff;"></i>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                    <div class="card-body">
-                        <span class="badge bg-primary mb-2">{{ projeto.tipo_projeto }}</span>
-                        <h5 class="card-title">{{ projeto.titulo }}</h5>
-                        <p class="card-text text-muted">{{ projeto.descricao[:100] }}...</p>
+
+                    <div style="padding: 20px; text-align: left; flex-grow: 1;">
+                        <span style="display: inline-block; margin-bottom: 10px; background-color: #0d6efd; color: white; padding: 4px 10px; border-radius: 4px; font-size: 0.85rem;">{{ projeto.tipo_projeto }}</span>
+                        <h5 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 10px; color: #111827;">{{ projeto.titulo }}</h5>
+                        <p style="color: #64748b; font-size: 0.9rem;">{{ projeto.descricao[:100] }}...</p>
                     </div>
-                    <div class="card-footer bg-transparent">
-                        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#modal-{{ projeto.id }}">
+
+                    <div style="padding: 0 20px 20px 20px;">
+                        <button type="button" data-bs-toggle="modal" data-bs-target="#modal-{{ projeto.id }}" style="width: 100%; background-color: #0d6efd; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">
                             <i class="fas fa-eye"></i> Visualizar
                         </button>
                     </div>
@@ -109,17 +146,31 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title">{{ projeto.titulo }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            {% if projeto.imagem %}
-                            <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="img-fluid mb-3 w-100" alt="{{ projeto.titulo }}">
-                            {% endif %}
-                            <p><strong>Tipo:</strong> {{ projeto.tipo_projeto }}</p>
-                            <p>{{ projeto.descricao }}</p>
+                            <!-- SLIDER DENTRO DO MODAL -->
+                            <div class="project-slider" style="position: relative; height: 350px; overflow: hidden; background-color: #212529; border-radius: 6px; margin-bottom: 15px;">
+                                {% if projeto.imagem %}
+                                <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="slide-img active-slide" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 1;">
+                                {% endif %}
+                                
+                                {% if projeto.imagem2 %}
+                                <img src="{{ url_for('static', filename='uploads/' + projeto.imagem2) }}" class="slide-img" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 0;">
+                                {% endif %}
+                                
+                                {% if projeto.imagem3 %}
+                                <img src="{{ url_for('static', filename='uploads/' + projeto.imagem3) }}" class="slide-img" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 0;">
+                                {% endif %}
+                            </div>
+
+                            <div style="margin-top: 15px;">
+                                <p><strong>Tipo:</strong> {{ projeto.tipo_projeto }}</p>
+                                <p>{{ projeto.descricao }}</p>
+                            </div>
                         </div>
                         <div class="modal-footer">
-                            <a href="/cadastro-cliente" class="btn btn-primary">
+                            <a href="/cadastro-cliente" style="background-color: #0d6efd; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none;">
                                 <i class="fas fa-handshake"></i> Solicitar Serviço Semelhante
                             </a>
                         </div>
@@ -131,4 +182,40 @@
     </div>
 </section>
 
+<!-- Mapa / Sketchup -->
+<div style="padding: 60px 0; text-align: center;">
+    <div style="width: 100%; max-width: 900px; height: 500px; margin: auto; border-radius: 12px; overflow: hidden; border: 2px solid #cbd5e1; box-shadow: 0px 10px 25px rgba(0,0,0,0.08);">
+        <iframe
+        src="https://app.sketchup.com/share/tc/northAmerica/lNDt2Cba_Zk?source=web&stoken=ISfaKrfO7b5_4F7grvmbz6zWBri-OD5ktZyLb9zrvK369t-1kTf37NT9PqNTOwK4"
+        style="border:0; width: 100%; height: 100%;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+</div>
+
+<!-- SCRIPT DO SLIDER AUTOMÁTICO (A CADA 3 SEGUNDOS) -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const sliders = document.querySelectorAll('.project-slider');
+
+        sliders.forEach(slider => {
+            const images = slider.querySelectorAll('.slide-img');
+            if (images.length > 1) {
+                let currentIndex = 0;
+
+                setInterval(() => {
+                    images[currentIndex].style.opacity = '0';
+                    images[currentIndex].classList.remove('active-slide');
+
+                    currentIndex = (currentIndex + 1) % images.length;
+
+                    images[currentIndex].style.opacity = '1';
+                    images[currentIndex].classList.add('active-slide');
+                }, 3000); // 3000ms = 3 segundos
+            }
+        });
+    });
+</script>
 {% endblock %}
