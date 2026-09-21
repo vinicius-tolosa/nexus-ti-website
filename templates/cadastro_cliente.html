@@ -14,7 +14,18 @@
             <div class="col-lg-8 mx-auto">
                 <div class="card shadow-sm">
                     <div class="card-body p-5">
+                        
+                        <!-- Alerta visual opcional para indicar o serviço selecionado -->
+                        {% if servico_selecionado and servico_selecionado != 'Geral' %}
+                            <div class="alert alert-info mb-4" role="alert">
+                                <i class="fas fa-handshake"></i> Serviço Selecionado: <strong>{{ servico_selecionado }}</strong>
+                            </div>
+                        {% endif %}
+
                         <form id="formCadastro">
+                            <!-- Campo oculto que envia automaticamente o serviço para o backend -->
+                            <input type="hidden" name="tipo_servico" value="{{ servico_selecionado }}">
+
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <label class="form-label">Nome Completo *</label>
@@ -100,8 +111,11 @@
 document.getElementById('formCadastro').addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const formData = new FormData(document.getElementById('formCadastro'));
+    const form = document.getElementById('formCadastro');
+    const formData = new FormData(form);
     const mensagem = document.getElementById('mensagem');
+    
+    mensagem.style.display = 'none';
     
     try {
         const response = await fetch('/cadastro-cliente', {
@@ -112,21 +126,21 @@ document.getElementById('formCadastro').addEventListener('submit', async (e) => 
         const data = await response.json();
         
         mensagem.style.display = 'block';
-        if (data.success) {
+        if (response.ok && (data.success || data.status === 'sucesso')) {
             mensagem.className = 'alert alert-success';
-            mensagem.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
-            document.getElementById('formCadastro').reset();
+            mensagem.innerHTML = '<i class="fas fa-check-circle"></i> ' + (data.message || data.mensagem);
+            form.reset();
             setTimeout(() => {
                 window.location.href = '/';
             }, 2000);
         } else {
             mensagem.className = 'alert alert-danger';
-            mensagem.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + data.message;
+            mensagem.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (data.message || data.mensagem || 'Erro ao processar cadastro.');
         }
     } catch (error) {
         mensagem.style.display = 'block';
         mensagem.className = 'alert alert-danger';
-        mensagem.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erro ao processar cadastro';
+        mensagem.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erro de conexão com o servidor.';
     }
 });
 </script>
