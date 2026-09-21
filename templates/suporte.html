@@ -4,7 +4,7 @@
 <section class="py-5 bg-light">
     <div class="container">
         <h1 class="mb-4"><i class="fas fa-headset text-info"></i> Suporte Técnico Avançado</h1>
-        <p class="lead">Suporte 24/7 especializado para manter seus sistemas sempre em funcionamento.</p>
+        <p class="lead">Atendimento especializado e suporte contínuo para manter sua operação ativa 24/7.</p>
     </div>
 </section>
 
@@ -15,20 +15,38 @@
                 {% for projeto in projetos %}
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 project-card shadow-sm">
-                        {% if projeto.imagem %}
-                        <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="card-img-top" alt="{{ projeto.titulo }}">
-                        {% else %}
-                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
-                            <i class="fas fa-image text-white fa-3x"></i>
+                        
+                        <!-- SLIDER DO CARD PRINCIPAL -->
+                        <div class="project-slider" style="position: relative; height: 200px; overflow: hidden; background-color: #212529;">
+                            {% if projeto.imagem %}
+                            <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="slide-img active-slide" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 1;">
+                            {% endif %}
+                            
+                            {% if projeto.imagem2 %}
+                            <img src="{{ url_for('static', filename='uploads/' + projeto.imagem2) }}" class="slide-img" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 0;">
+                            {% endif %}
+                            
+                            {% if projeto.imagem3 %}
+                            <img src="{{ url_for('static', filename='uploads/' + projeto.imagem3) }}" class="slide-img" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 0;">
+                            {% endif %}
+
+                            {% if not projeto.imagem and not projeto.imagem2 and not projeto.imagem3 %}
+                            <div class="d-flex align-items-center justify-content-center h-100 bg-secondary">
+                                <i class="fas fa-image text-white fa-3x"></i>
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
+
                         <div class="card-body">
                             <h5 class="card-title">{{ projeto.titulo }}</h5>
                             <p class="card-text text-muted">{{ projeto.descricao[:100] }}...</p>
                         </div>
                         <div class="card-footer bg-transparent">
-                            <button class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#modal-{{ projeto.id }}">
-                                <i class="fas fa-eye"></i> Visualizar
+                            <a href="{{ url_for('detalhe_projeto', id=projeto.id) }}" class="btn btn-outline-info w-100 mb-2">
+                                <i class="fas fa-eye"></i> Visualizar Detalhes
+                            </a>
+                            <button type="button" class="btn btn-secondary w-100" data-bs-toggle="modal" data-bs-target="#modal-{{ projeto.id }}">
+                                <i class="fas fa-search-plus"></i> Espiar Projeto
                             </button>
                         </div>
                     </div>
@@ -43,14 +61,27 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                {% if projeto.imagem %}
-                                <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="img-fluid mb-3 w-100" alt="{{ projeto.titulo }}">
-                                {% endif %}
-                                <p><strong>Tipo:</strong> {{ projeto.tipo_projeto }}</p>
-                                <p>{{ projeto.descricao }}</p>
+                                <div class="project-slider mb-3" style="position: relative; height: 350px; overflow: hidden; background-color: #212529; border-radius: 6px;">
+                                    {% if projeto.imagem %}
+                                    <img src="{{ url_for('static', filename='uploads/' + projeto.imagem) }}" class="slide-img active-slide" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 1;">
+                                    {% endif %}
+                                    
+                                    {% if projeto.imagem2 %}
+                                    <img src="{{ url_for('static', filename='uploads/' + projeto.imagem2) }}" class="slide-img" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 0;">
+                                    {% endif %}
+                                    
+                                    {% if projeto.imagem3 %}
+                                    <img src="{{ url_for('static', filename='uploads/' + projeto.imagem3) }}" class="slide-img" alt="{{ projeto.titulo }}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; transition: opacity 0.6s ease-in-out; opacity: 0;">
+                                    {% endif %}
+                                </div>
+
+                                <div class="mt-3">
+                                    <p><strong>Tipo:</strong> {{ projeto.tipo_projeto }}</p>
+                                    <p>{{ projeto.descricao }}</p>
+                                </div>
                             </div>
                             <div class="modal-footer">
-                                <a href="/cadastro-cliente" class="btn btn-info">
+                                <a href="{{ url_for('solicitar_servico', servico=projeto.titulo) }}" class="btn btn-primary w-100 py-2">
                                     <i class="fas fa-handshake"></i> Solicitar Serviço Semelhante
                                 </a>
                             </div>
@@ -68,4 +99,23 @@
         </div>
     </div>
 </section>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const sliders = document.querySelectorAll('.project-slider');
+        sliders.forEach(slider => {
+            const images = slider.querySelectorAll('.slide-img');
+            if (images.length > 1) {
+                let currentIndex = 0;
+                setInterval(() => {
+                    images[currentIndex].style.opacity = '0';
+                    images[currentIndex].classList.remove('active-slide');
+                    currentIndex = (currentIndex + 1) % images.length;
+                    images[currentIndex].style.opacity = '1';
+                    images[currentIndex].classList.add('active-slide');
+                }, 3000);
+            }
+        });
+    });
+</script>
 {% endblock %}
