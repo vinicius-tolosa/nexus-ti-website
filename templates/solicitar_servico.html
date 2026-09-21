@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="mb-3"><i class="fas fa-clipboard-list text-primary"></i> Solicitação de Serviço</h2>
+        <p class="text-muted">Preencha os dados abaixo para solicitar um orçamento ou atendimento para o projeto selecionado.</p>
+    </div>
+</section>
+
+<div class="container py-4">
+    <div class="card shadow-sm mx-auto" style="max-width: 800px;">
+        <div class="card-body p-4 p-md-5">
+            
+            <!-- Destaque do serviço selecionado -->
+            <div class="alert alert-primary mb-4 d-flex align-items-center">
+                <i class="fas fa-info-circle fa-2x me-3"></i>
+                <div>
+                    <h5 class="mb-0">Serviço de interesse:</h5>
+                    <strong>{{ servico }}</strong>
+                </div>
+            </div>
+
+            <form action="{{ url_for('salvar_solicitacao') }}" method="POST">
+                <!-- Envia o nome do serviço oculto para o backend -->
+                <input type="hidden" name="tipo_servico" value="{{ servico }}">
+
+                <div class="row mb-3 g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">Nome Completo *</label>
+                        <input type="text" class="form-control" name="nome_completo" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">Email *</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                </div>
+
+                <div class="row mb-4 g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">Telefone *</label>
+                        <input type="tel" class="form-control" name="telefone" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">Documento (CPF/CNPJ)</label>
+                        <input type="text" class="form-control" name="documento">
+                    </div>
+                </div>
+
+                <!-- NOVO CAMPO: Descrição / Detalhes do Serviço -->
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-bold">Descrição / Detalhes do Serviço *</label>
+                    <textarea class="form-control" name="descricao_servico" rows="4" placeholder="Descreva os detalhes específicos, medidas, necessidades ou o escopo do serviço desejado..." required></textarea>
+                </div>
+
+                <h5 class="mb-3 mt-4 border-bottom pb-2"><i class="fas fa-map-marker-alt text-danger"></i> Endereço</h5>
+
+                <div class="row mb-3 g-3">
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">CEP</label>
+                        <input type="text" class="form-control" name="cep">
+                    </div>
+                    <div class="col-md-9">
+                        <label class="form-label text-muted small fw-bold">Rua</label>
+                        <input type="text" class="form-control" name="rua">
+                    </div>
+                </div>
+
+                <div class="row mb-3 g-3">
+                    <div class="col-md-3">
+                        <label class="form-label text-muted small fw-bold">Número</label>
+                        <input type="text" class="form-control" name="numero">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small fw-bold">Bairro</label>
+                        <input type="text" class="form-control" name="bairro">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label text-muted small fw-bold">Complemento</label>
+                        <input type="text" class="form-control" name="complemento">
+                    </div>
+                </div>
+
+                <div class="row mb-5 g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">Cidade</label>
+                        <input type="text" class="form-control" name="cidade">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small fw-bold">Estado</label>
+                        <input type="text" class="form-control" name="estado">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">
+                    <i class="fas fa-paper-plane me-2"></i> Enviar Solicitação de Serviço
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
