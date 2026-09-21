@@ -1,36 +1,35 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import sqlite3
 import os
-from datetime import datetime
-from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-# Configurações
+DB_NAME = "nexus_ti.db"
 UPLOAD_FOLDER = 'static/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Criar pasta de uploads se não existir
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
-# ==================== BANCO DE DADOS ====================
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def get_db():
-    """Conecta ao banco de dados SQLite"""
-    conn = sqlite3.connect('nexusdb.db')
+# Função de conexão atualizada com timeout e modo WAL (Evita database is locked)
+def get_db_connection():
+    conn = sqlite3.connect(DB_NAME, timeout=10)
     conn.row_factory = sqlite3.Row
+    conn.execute('PRAGMA journal_mode=WAL;')
     return conn
 
 def init_db():
-    """Inicializa o banco de dados com as tabelas necessárias"""
-    conn = get_db()
+    conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Tabela de administradores
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS admins (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,26 +38,26 @@ def init_db():
         )
     ''')
     
-    # Tabela de clientes
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS clientes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome_completo TEXT NOT NULL,
             email TEXT NOT NULL,
             telefone TEXT NOT NULL,
-            documento TEXT,
-            cep TEXT,
-            rua TEXT,
-            numero TEXT,
-            bairro TEXT,
-            cidade TEXT,
-            estado TEXT,
+            documento TEXT NOT NULL,
+            cep TEXT NOT NULL,
+            rua TEXT NOT NULL,
+            numero TEXT NOT NULL,
+            bairro TEXT NOT NULL,
+            cidade TEXT NOT NULL,
+            estado TEXT NOT NULL,
             complemento TEXT,
-            data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            tipo_servico TEXT DEFAULT 'Geral',
+            descricao TEXT,
+            status TEXT DEFAULT 'Pendente'
         )
     ''')
-    
-    # Tabela de projetos
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS projetos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,368 +65,326 @@ def init_db():
             descricao TEXT NOT NULL,
             tipo_projeto TEXT NOT NULL,
             imagem TEXT,
-            data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            imagem2 TEXT,
+            imagem3 TEXT,
+            imagem4 TEXT,
+            sketchup_link TEXT
         )
     ''')
     
-    conn.commit()
-    
-    # Criar admin padrão se não existir
-    cursor.execute('SELECT * FROM admins WHERE username = ?', ('admin',))
+    # Garante compatibilidade caso as tabelas já existam sem as novas colunas
+    for col in ['tipo_servico', 'descricao', 'status']:
+        try:
+            cursor.execute(f"ALTER TABLE clientes ADD COLUMN {col} TEXT")
+        except sqlite3.OperationalError:
+            pass
+
+    for col in ['imagem', 'imagem2', 'imagem3', 'imagem4', 'sketchup_link']:
+        try:
+            cursor.execute(f"ALTER TABLE projetos ADD COLUMN {col} TEXT")
+        except sqlite3.OperationalError:
+            pass
+
+    cursor.execute("SELECT * FROM admins WHERE username = 'admin'")
     if not cursor.fetchone():
-        password_hash = generate_password_hash('admin123')
-        cursor.execute('INSERT INTO admins (username, password) VALUES (?, ?)', ('admin', password_hash))
-        conn.commit()
-    
+        hashed_pw = generate_password_hash("admin123")
+        cursor.execute("INSERT INTO admins (username, password) VALUES (?, ?)", ("admin", hashed_pw))
+        
+    conn.commit()
     conn.close()
 
-# Inicializar banco na primeira execução
-with app.app_context():
-    init_db()
+init_db()
 
-# ==================== FUNÇÕES AUXILIARES ====================
-
-def allowed_file(filename):
-    """Verifica se o arquivo é permitido"""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def login_required(f):
-    """Decorator para verificar se o admin está logado"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'admin_logged' not in session:
-            return redirect(url_for('admin_login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-# ==================== ROTAS PÚBLICAS ====================
+# --- ROTAS PÚBLICAS DO SITE ---
 
 @app.route('/')
 def index():
-    """Página inicial"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM projetos LIMIT 6')
-    projetos_destaque = cursor.fetchall()
-    conn.close()
-    return render_template('index.html', projetos=projetos_destaque)
+    return render_template('index.html')
 
 @app.route('/infraestrutura')
-def infraestrutura():
-    """Página de Infraestrutura de Redes"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM projetos WHERE tipo_projeto = ?', ('Infraestrutura de Redes',))
-    projetos = cursor.fetchall()
+def servico_infraestrutura():
+    conn = get_db_connection()
+    projetos = conn.execute("SELECT * FROM projetos WHERE tipo_projeto = 'Infraestrutura de Redes'").fetchall()
     conn.close()
     return render_template('infraestrutura.html', projetos=projetos)
 
-@app.route('/orcamento-redes')
-def orcamento_redes():
-    """Redirecionamento para infraestrutura"""
-    return redirect(url_for('infraestrutura'))
-
 @app.route('/seguranca')
-def seguranca():
-    """Página de Segurança da Informação"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM projetos WHERE tipo_projeto = ?', ('Segurança da Informação',))
-    projetos = cursor.fetchall()
+def servico_seguranca():
+    conn = get_db_connection()
+    projetos = conn.execute("SELECT * FROM projetos WHERE tipo_projeto = 'Segurança da Informação'").fetchall()
     conn.close()
     return render_template('seguranca.html', projetos=projetos)
 
 @app.route('/desenvolvimento')
-def desenvolvimento():
-    """Página de Desenvolvimento de Software"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM projetos WHERE tipo_projeto = ?', ('Desenvolvimento de Software',))
-    projetos = cursor.fetchall()
+def servico_desenvolvimento():
+    conn = get_db_connection()
+    projetos = conn.execute("SELECT * FROM projetos WHERE tipo_projeto = 'Desenvolvimento de Software'").fetchall()
     conn.close()
     return render_template('desenvolvimento.html', projetos=projetos)
 
 @app.route('/suporte')
-def suporte():
-    """Página de Suporte Técnico Avançado"""
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM projetos WHERE tipo_projeto = ?', ('Suporte Técnico Avançado',))
-    projetos = cursor.fetchall()
+def servico_suporte():
+    conn = get_db_connection()
+    projetos = conn.execute("SELECT * FROM projetos WHERE tipo_projeto = 'Suporte Técnico Avançado'").fetchall()
     conn.close()
     return render_template('suporte.html', projetos=projetos)
 
+@app.route('/projeto/<int:id>')
+def detalhe_projeto(id):
+    conn = get_db_connection()
+    projeto = conn.execute("SELECT * FROM projetos WHERE id = ?", (id,)).fetchone()
+    conn.close()
+    
+    if not projeto:
+        abort(404)
+        
+    return render_template('detalhe_projeto.html', projeto=projeto)
+
+# --- ROTAS DE SOLICITAÇÃO E CADASTRO ---
+
 @app.route('/cadastro-cliente', methods=['GET', 'POST'])
 def cadastro_cliente():
-    """Formulário e processamento de cadastro de cliente"""
     if request.method == 'POST':
+        nome = request.form.get('nome_completo')
+        email = request.form.get('email')
+        telefone = request.form.get('telefone')
+        documento = request.form.get('documento')
+        cep = request.form.get('cep')
+        rua = request.form.get('rua')
+        numero = request.form.get('numero')
+        bairro = request.form.get('bairro')
+        complemento = request.form.get('complemento', '')
+        cidade = request.form.get('cidade')
+        estado = request.form.get('estado')
+        tipo_servico = request.form.get('tipo_servico', 'Geral')
+        descricao = request.form.get('descricao', '')
+
         try:
-            data = request.form
-            conn = get_db()
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                INSERT INTO clientes 
-                (nome_completo, email, telefone, documento, cep, rua, numero, 
-                 bairro, cidade, estado, complemento)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                data.get('nome_completo'),
-                data.get('email'),
-                data.get('telefone'),
-                data.get('documento'),
-                data.get('cep'),
-                data.get('rua'),
-                data.get('numero'),
-                data.get('bairro'),
-                data.get('cidade'),
-                data.get('estado'),
-                data.get('complemento')
-            ))
-            
+            conn = get_db_connection()
+            conn.execute('''
+                INSERT INTO clientes (
+                    nome_completo, email, telefone, documento, 
+                    cep, rua, numero, bairro, complemento, 
+                    cidade, estado, tipo_servico, descricao, status
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendente')
+            ''', (nome, email, telefone, documento, cep, rua, numero, bairro, complemento, cidade, estado, tipo_servico, descricao))
             conn.commit()
             conn.close()
-            
-            return jsonify({'success': True, 'message': 'Cadastro realizado com sucesso!'})
+            return jsonify({"success": True, "message": "Solicitação cadastrada com sucesso!"}), 200
         except Exception as e:
-            return jsonify({'success': False, 'message': str(e)}), 400
-    
-    return render_template('cadastro-cliente.html')
+            return jsonify({"success": False, "message": f"Erro no banco de dados: {str(e)}"}), 500
 
-# ==================== ROTAS DE AUTENTICAÇÃO ====================
+    servico_selecionado = request.args.get('servico', 'Geral')
+    return render_template('cadastro_cliente.html', servico_selecionado=servico_selecionado)
+
+
+@app.route('/solicitar-servico')
+def solicitar_servico():
+    servico_solicitado = request.args.get('servico', 'Serviço Personalizado')
+    return render_template('solicitar_servico.html', servico=servico_solicitado)
+
+
+@app.route('/salvar-solicitacao', methods=['POST'])
+def salvar_solicitacao():
+    tipo_servico = request.form.get('tipo_servico', 'Geral')
+    nome = request.form.get('nome_completo')
+    email = request.form.get('email')
+    telefone = request.form.get('telefone')
+    documento = request.form.get('documento')
+    cep = request.form.get('cep')
+    rua = request.form.get('rua')
+    numero = request.form.get('numero')
+    bairro = request.form.get('bairro')
+    complemento = request.form.get('complemento', '')
+    cidade = request.form.get('cidade')
+    estado = request.form.get('estado')
+    descricao = request.form.get('descricao', '')
+
+    try:
+        conn = get_db_connection()
+        conn.execute('''
+            INSERT INTO clientes (
+                nome_completo, email, telefone, documento, 
+                cep, rua, numero, bairro, complemento, 
+                cidade, estado, tipo_servico, descricao, status
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendente')
+        ''', (nome, email, telefone, documento, cep, rua, numero, bairro, complemento, cidade, estado, tipo_servico, descricao))
+        conn.commit()
+        conn.close()
+        
+        flash(f"Sua solicitação para '{tipo_servico}' foi enviada com sucesso! Entraremos em contato em breve.", "success")
+    except Exception as e:
+        flash("Ocorreu um erro ao enviar sua solicitação. Tente novamente.", "danger")
+        
+    return redirect(url_for('index'))
+
+
+# --- ROTAS DO PAINEL ADMINISTRATIVO ---
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
-    """Login do administrador"""
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM admins WHERE username = ?', (username,))
-        admin = cursor.fetchone()
+
+        conn = get_db_connection()
+        admin = conn.execute("SELECT * FROM admins WHERE username = ?", (username,)).fetchone()
         conn.close()
-        
+
         if admin and check_password_hash(admin['password'], password):
             session['admin_logged'] = True
-            session['admin_id'] = admin['id']
-            session['admin_username'] = admin['username']
+            session['admin_user'] = admin['username']
             return redirect(url_for('admin_dashboard'))
         else:
-            return render_template('login.html', error='Usuário ou senha incorretos')
-    
-    return render_template('login.html')
+            flash("Usuário ou senha incorretos!", "danger")
+
+    return render_template('admin_login.html')
+
+@app.route('/login')
+def login():
+    return redirect(url_for('admin_login'))
 
 @app.route('/admin/logout')
 def admin_logout():
-    """Logout do administrador"""
     session.clear()
     return redirect(url_for('admin_login'))
 
-# ==================== ROTAS DO PAINEL ADMINISTRATIVO ====================
-
 @app.route('/admin')
-@login_required
 def admin_dashboard():
-    """Dashboard administrativo"""
-    conn = get_db()
-    cursor = conn.cursor()
+    if not session.get('admin_logged'):
+        return redirect(url_for('admin_login'))
     
-    # Estatísticas
-    cursor.execute('SELECT COUNT(*) as total FROM clientes')
-    total_clientes = cursor.fetchone()['total']
-    
-    cursor.execute('SELECT COUNT(*) as total FROM projetos')
-    total_projetos = cursor.fetchone()['total']
-    
-    cursor.execute('SELECT COUNT(*) as total FROM admins')
-    total_admins = cursor.fetchone()['total']
-    
-    # Últimos clientes
-    cursor.execute('SELECT * FROM clientes ORDER BY data_cadastro DESC LIMIT 5')
-    ultimos_clientes = cursor.fetchall()
-    
-    # Todos os projetos
-    cursor.execute('SELECT * FROM projetos ORDER BY data_criacao DESC')
-    projetos = cursor.fetchall()
-    
-    # Todos os admins
-    cursor.execute('SELECT id, username FROM admins')
-    admins = cursor.fetchall()
-    
+    conn = get_db_connection()
+    solicitacoes = conn.execute("SELECT * FROM clientes ORDER BY id DESC").fetchall()
+    projetos = conn.execute("SELECT * FROM projetos").fetchall()
+    admins = conn.execute("SELECT id, username FROM admins").fetchall()
     conn.close()
+
+    return render_template('admin_dashboard.html', solicitacoes=solicitacoes, projetos=projetos, admins=admins)
+
+@app.route('/admin/solicitacao/status/<int:id>', methods=['POST'])
+def atualizar_status_solicitacao(id):
+    if not session.get('admin_logged'):
+        return redirect(url_for('admin_login'))
     
-    return render_template('admin/dashboard.html', 
-                         total_clientes=total_clientes,
-                         total_projetos=total_projetos,
-                         total_admins=total_admins,
-                         ultimos_clientes=ultimos_clientes,
-                         projetos=projetos,
-                         admins=admins)
+    novo_status = request.form.get('status')
+    conn = get_db_connection()
+    conn.execute("UPDATE clientes SET status = ? WHERE id = ?", (novo_status, id))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
 
-@app.route('/admin/projeto/adicionar', methods=['POST'])
-@login_required
-def adicionar_projeto():
-    """Adicionar novo projeto"""
-    try:
-        titulo = request.form.get('titulo')
-        descricao = request.form.get('descricao')
-        tipo_projeto = request.form.get('tipo_projeto')
-        imagem = request.files.get('imagem')
-        
-        nome_arquivo = None
-        if imagem and allowed_file(imagem.filename):
-            filename = secure_filename(imagem.filename)
-            filename = f"{datetime.now().timestamp()}_{filename}"
-            imagem.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            nome_arquivo = filename
-        
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('''
-            INSERT INTO projetos (titulo, descricao, tipo_projeto, imagem)
-            VALUES (?, ?, ?, ?)
-        ''', (titulo, descricao, tipo_projeto, nome_arquivo))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({'success': True, 'message': 'Projeto adicionado com sucesso!'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+@app.route('/admin/solicitacao/atualizar/<int:id>', methods=['POST'])
+def atualizar_solicitacao(id):
+    if not session.get('admin_logged'):
+        return redirect(url_for('admin_login'))
+    
+    novo_status = request.form.get('status')
+    novo_tipo = request.form.get('tipo_servico')
+    
+    conn = get_db_connection()
+    conn.execute("UPDATE clientes SET status = ?, tipo_servico = ? WHERE id = ?", (novo_status, novo_tipo, id))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
 
-@app.route('/admin/projeto/<int:projeto_id>/editar', methods=['POST'])
-@login_required
-def editar_projeto(projeto_id):
-    """Editar projeto existente"""
-    try:
-        titulo = request.form.get('titulo')
-        descricao = request.form.get('descricao')
-        tipo_projeto = request.form.get('tipo_projeto')
-        imagem = request.files.get('imagem')
-        
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        # Buscar projeto atual
-        cursor.execute('SELECT * FROM projetos WHERE id = ?', (projeto_id,))
-        projeto = cursor.fetchone()
-        
-        nome_arquivo = projeto['imagem']
-        
-        # Se nova imagem foi enviada
-        if imagem and allowed_file(imagem.filename):
-            # Deletar imagem antiga
-            if projeto['imagem']:
-                old_path = os.path.join(app.config['UPLOAD_FOLDER'], projeto['imagem'])
-                if os.path.exists(old_path):
-                    os.remove(old_path)
-            
-            # Salvar nova imagem
-            filename = secure_filename(imagem.filename)
-            filename = f"{datetime.now().timestamp()}_{filename}"
-            imagem.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            nome_arquivo = filename
-        
-        cursor.execute('''
-            UPDATE projetos 
-            SET titulo = ?, descricao = ?, tipo_projeto = ?, imagem = ?
-            WHERE id = ?
-        ''', (titulo, descricao, tipo_projeto, nome_arquivo, projeto_id))
-        
-        conn.commit()
-        conn.close()
-        
-        return jsonify({'success': True, 'message': 'Projeto atualizado com sucesso!'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+@app.route('/admin/solicitacao/excluir/<int:id>', methods=['POST'])
+def excluir_solicitacao(id):
+    if not session.get('admin_logged'):
+        return redirect(url_for('admin_login'))
+    
+    conn = get_db_connection()
+    conn.execute("DELETE FROM clientes WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
 
-@app.route('/admin/projeto/<int:projeto_id>/deletar', methods=['DELETE'])
-@login_required
-def deletar_projeto(projeto_id):
-    """Deletar projeto"""
-    try:
-        conn = get_db()
-        cursor = conn.cursor()
-        
-        # Buscar projeto
-        cursor.execute('SELECT * FROM projetos WHERE id = ?', (projeto_id,))
-        projeto = cursor.fetchone()
-        
-        # Deletar imagem
-        if projeto['imagem']:
-            path = os.path.join(app.config['UPLOAD_FOLDER'], projeto['imagem'])
-            if os.path.exists(path):
-                os.remove(path)
-        
-        # Deletar do banco
-        cursor.execute('DELETE FROM projetos WHERE id = ?', (projeto_id,))
-        conn.commit()
-        conn.close()
-        
-        return jsonify({'success': True, 'message': 'Projeto deletado com sucesso!'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
+@app.route('/admin/projeto/salvar', methods=['POST'])
+def salvar_projeto():
+    if not session.get('admin_logged'):
+        return redirect(url_for('admin_login'))
 
-@app.route('/admin/admin/adicionar', methods=['POST'])
-@login_required
-def adicionar_admin():
-    """Adicionar novo administrador"""
+    projeto_id = request.form.get('projeto_id')
+    titulo = request.form.get('titulo')
+    descricao = request.form.get('descricao')
+    tipo_projeto = request.form.get('tipo_projeto')
+    sketchup_link = request.form.get('sketchup_link', '').strip()
+    
+    filenames = {
+        'imagem': None,
+        'imagem2': None,
+        'imagem3': None,
+        'imagem4': None
+    }
+
+    for campo in ['imagem', 'imagem2', 'imagem3', 'imagem4']:
+        if campo in request.files:
+            file = request.files[campo]
+            if file and file.filename != '' and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(upload_path)
+                filenames[campo] = filename
+
+    conn = get_db_connection()
+    
+    if projeto_id:
+        projeto_atual = conn.execute("SELECT * FROM projetos WHERE id = ?", (projeto_id,)).fetchone()
+        
+        img1 = filenames['imagem'] if filenames['imagem'] else projeto_atual['imagem']
+        img2 = filenames['imagem2'] if filenames['imagem2'] else projeto_atual['imagem2']
+        img3 = filenames['imagem3'] if filenames['imagem3'] else projeto_atual['imagem3']
+        img4 = filenames['imagem4'] if filenames['imagem4'] else projeto_atual['imagem4']
+
+        conn.execute('''
+            UPDATE projetos SET titulo = ?, descricao = ?, tipo_projeto = ?, imagem = ?, imagem2 = ?, imagem3 = ?, imagem4 = ?, sketchup_link = ? WHERE id = ?
+        ''', (titulo, descricao, tipo_projeto, img1, img2, img3, img4, sketchup_link, projeto_id))
+    else:
+        conn.execute('''
+            INSERT INTO projetos (titulo, descricao, tipo_projeto, imagem, imagem2, imagem3, imagem4, sketchup_link) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (titulo, descricao, tipo_projeto, filenames['imagem'], filenames['imagem2'], filenames['imagem3'], filenames['imagem4'], sketchup_link))
+    
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/projeto/excluir/<int:id>', methods=['POST'])
+def excluir_projeto(id):
+    if not session.get('admin_logged'):
+        return redirect(url_for('admin_login'))
+    
+    conn = get_db_connection()
+    conn.execute("DELETE FROM projetos WHERE id = ?", (id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/usuario/salvar', methods=['POST'])
+def salvar_admin():
+    if not session.get('admin_logged'):
+        return redirect(url_for('admin_login'))
+
+    username = request.form.get('novo_username')
+    password = request.form.get('novo_password')
+    hashed_pw = generate_password_hash(password)
+
+    conn = get_db_connection()
     try:
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        if not username or not password:
-            return jsonify({'success': False, 'message': 'Preencha todos os campos'}), 400
-        
-        password_hash = generate_password_hash(password)
-        
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO admins (username, password) VALUES (?, ?)',
-                      (username, password_hash))
+        conn.execute("INSERT INTO admins (username, password) VALUES (?, ?)", (username, hashed_pw))
         conn.commit()
-        conn.close()
-        
-        return jsonify({'success': True, 'message': 'Administrador adicionado com sucesso!'})
     except sqlite3.IntegrityError:
-        return jsonify({'success': False, 'message': 'Usuário já existe'}), 400
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
-
-@app.route('/admin/admin/<int:admin_id>/deletar', methods=['DELETE'])
-@login_required
-def deletar_admin(admin_id):
-    """Deletar administrador"""
-    try:
-        # Verificar se é o último admin
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT COUNT(*) as total FROM admins')
-        
-        if cursor.fetchone()['total'] <= 1:
-            return jsonify({'success': False, 'message': 'Não pode deletar o último administrador'}), 400
-        
-        cursor.execute('DELETE FROM admins WHERE id = ?', (admin_id,))
-        conn.commit()
+        pass
+    finally:
         conn.close()
-        
-        return jsonify({'success': True, 'message': 'Administrador deletado com sucesso!'})
-    except Exception as e:
-        return jsonify({'success': False, 'message': str(e)}), 400
 
-# ==================== TRATAMENTO DE ERROS ====================
+    return redirect(url_for('admin_dashboard'))
 
-@app.errorhandler(404)
-def not_found(error):
-    """Página não encontrada"""
-    return render_template('404.html'), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    """Erro interno do servidor"""
-    return render_template('500.html'), 500
+@app.route('/orcamento-redes')
+def orcamento_redes():
+    return render_template('infraestrutura.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
