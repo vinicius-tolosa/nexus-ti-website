@@ -19,11 +19,9 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Função de conexão atualizada com timeout e modo WAL (Evita database is locked)
 def get_db_connection():
-    conn = sqlite3.connect(DB_NAME, timeout=10)
+    conn = sqlite3.connect(DB_NAME)
     conn.row_factory = sqlite3.Row
-    conn.execute('PRAGMA journal_mode=WAL;')
     return conn
 
 def init_db():
@@ -386,5 +384,4 @@ def orcamento_redes():
     return render_template('infraestrutura.html')
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)
